@@ -56,5 +56,10 @@ public class CuentaCorrienteVipController {
 	public Flux<Movimientos> getMovimientosCorriente(@PathVariable("nro_cuenta") String nro_cuenta){
 		return s_cuenta.getMovimientos(nro_cuenta);
 	}
+	
+	@GetMapping("/getRangeMovimientosCorrienteVip/{nro_cuenta}/{from}/{to}")
+	public Flux<Movimientos> getRangeMovimientosCorrienteVip(@PathVariable("nro_cuenta") String nro_cuenta, @PathVariable("from") String from, @PathVariable("to") String to){
+		return s_cuenta.getRangeMovimientos(nro_cuenta, from, to);
+	}
 
 }

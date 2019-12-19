@@ -1,5 +1,7 @@
 package com.everis.bc.servicioCuentaCorrienteVip.service;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -39,13 +41,15 @@ public class ServiceCtaImplement implements ServiceCta {
 	private double comision;
 	@Value("${valores.movesxmonth}")
 	private int movesxmonth;
+	@Value("${valores.montominapertura}")
+	private double montominapertura;
 
 	private List<String> docs;
 
 	@Override
 	public Mono<CuentaCorrienteVip> saveData(CuentaCorrienteVip cuenta) {
 		//Map<String, Object> respuesta = new HashMap<String, Object>();
-
+		CuentaCorrienteVip ccv=new CuentaCorrienteVip();
 		List<String> doc = new ArrayList<>();
 		for (Listas h : cuenta.getTitulares()) {
 			doc.add(h.getDoc());
@@ -54,12 +58,16 @@ public class ServiceCtaImplement implements ServiceCta {
 		
 		cuenta.setMovesxmonth(movesxmonth);
 		cuenta.setLastmove(fecha);
-
-		return repo1.findByTitularesDocList(doc).flatMap(ctas -> {
-			return Mono.just(ctas);
-		}).switchIfEmpty(repo1.save(cuenta).flatMap(cta -> {
-			return Mono.just(cta);
-		})).next();
+		if(cuenta.getSaldo()>=montominapertura) {
+			return repo1.findByTitularesDocList(doc).flatMap(ctas -> {
+				return Mono.just(ctas);
+			}).switchIfEmpty(repo1.save(cuenta).flatMap(cta -> {
+				return Mono.just(cta);
+			})).next();
+		}else {
+			return Mono.just(ccv);
+		}
+		
 
 		/*
 		 * return repo1.findByTitularesDocList(docs).map(ctadb -> {
@@ -271,5 +279,27 @@ public class ServiceCtaImplement implements ServiceCta {
 			}
 
 		});
+	}
+
+	@Override
+	public Flux<Movimientos> getRangeMovimientos(String nro_cuenta, String from, String to) {
+		// TODO Auto-generated method stub
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+		
+		 try {
+			
+			Date first = df.parse(from);
+			Date last = df.parse(to);
+			System.out.println(first.toString()+" "+last);
+			
+			//return repoMov.findAllDateRangeByNro_cuenta(nro_cuenta, first, last);
+			return repoMov.findByFechaBetween(first, last).filter(moves->moves.getNro_cuenta().equals(nro_cuenta));
+			
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			//e.printStackTrace();
+			return null;
+		}
+		
 	}
 }

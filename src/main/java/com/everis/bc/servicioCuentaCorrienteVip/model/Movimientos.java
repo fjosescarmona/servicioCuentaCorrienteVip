@@ -23,7 +23,7 @@ public class Movimientos {
 	private double monto;
 	@NotNull
 	private double comision;
-	@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	@DateTimeFormat(pattern = "yyyy-MM-dd")
 	private Date fecha;
 	
 	public String getNro_tarjeta() {
