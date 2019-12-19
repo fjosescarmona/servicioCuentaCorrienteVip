@@ -8,7 +8,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Configuration
 public class AppConfig {
 	
-	@Value("${valores.uri_to_gateway}")
+	@Value("${valores.uri_tc}")
 	private String url;
 	
 	@Bean

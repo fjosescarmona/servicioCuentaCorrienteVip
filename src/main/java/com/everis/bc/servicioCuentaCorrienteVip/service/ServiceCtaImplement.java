@@ -115,8 +115,11 @@ public class ServiceCtaImplement implements ServiceCta {
 				params.put("monto", movimiento.getMonto());
 				params.put("fecha", movimiento.getFecha());
 
-				client.post().uri("/tc/saveMovimientosTC").accept(MediaType.APPLICATION_JSON_UTF8)
-						.body(BodyInserters.fromObject(params)).retrieve().bodyToMono(Movimientos.class).subscribe();
+				client.post().uri("/saveMovimientosTC")
+				.accept(MediaType.APPLICATION_JSON_UTF8)
+						.body(BodyInserters.fromObject(params))
+						.retrieve().bodyToMono(Map.class)
+						.subscribe();
 				// System.out.println(dtf.format(now));
 				repo1.save(cta).subscribe();
 				repoMov.save(movimiento).subscribe();
@@ -128,6 +131,7 @@ public class ServiceCtaImplement implements ServiceCta {
 				respuesta.put("Result", "Su saldo no es suficiente para realizar la operaciòn");
 				return respuesta;
 			}
+			
 
 		});
 
@@ -164,14 +168,14 @@ public class ServiceCtaImplement implements ServiceCta {
 	public Mono<Map<String, Object>> saveDeposito(Movimientos mov) {
 		// TODO Auto-generated method stub
 		Map<String, Object> respuesta = new HashMap<String, Object>();
-		Date fecha=new Date();
+		//Date fecha=new Date();
 		return repo1.findByNro_cuenta(mov.getNro_cuenta()).map(cta -> {
 			//-----------------valida si tiene movimientos disponibles en el mes-----------------//
 			if (cta.getLastmove().getMonth() == mov.getFecha().getMonth() && cta.getMovesxmonth() > 0) {
 				Double saldo = cta.getSaldo();
 				cta.setSaldo(saldo + mov.getMonto());
 				cta.setMovesxmonth(cta.getMovesxmonth() - 1);
-				cta.setLastmove(fecha);
+				cta.setLastmove(mov.getFecha());
 				repo1.save(cta).subscribe();
 				repoMov.save(mov).subscribe();
 				respuesta.put("Result", "Deposito realizado, su nuevo saldo es: " + (saldo + mov.getMonto()));
@@ -181,7 +185,7 @@ public class ServiceCtaImplement implements ServiceCta {
 				if (cta.getLastmove().getMonth() != mov.getFecha().getMonth()) {
 					Double saldo = cta.getSaldo();
 					cta.setSaldo(saldo + mov.getMonto());
-					cta.setLastmove(fecha);
+					cta.setLastmove(mov.getFecha());
 					cta.setMovesxmonth(4);
 					repo1.save(cta).subscribe();
 					repoMov.save(mov).subscribe();
@@ -194,11 +198,11 @@ public class ServiceCtaImplement implements ServiceCta {
 					
 					if ((saldo+mov.getMonto()) - comision >=0) {
 						cta.setSaldo(saldo + mov.getMonto() - comision);
-						cta.setLastmove(fecha);
+						cta.setLastmove(mov.getFecha());
 						mov.setComision(comision);
 						repo1.save(cta).subscribe();
 						repoMov.save(mov).subscribe();
-						respuesta.put("Result", "Deposito realizado, su nuevo saldo es S/: " + (saldo + mov.getMonto())
+						respuesta.put("Result", "Deposito realizado, su nuevo saldo es S/: " + ((saldo + mov.getMonto())-comision)
 								+ ". Se cobro una comision de: S/" + comision);
 						return respuesta;
 					} else {
@@ -222,13 +226,13 @@ public class ServiceCtaImplement implements ServiceCta {
 	public Mono<Map<String, Object>> saveRetiro(Movimientos mov) {
 		// TODO Auto-generated method stub
 		Map<String, Object> respuesta = new HashMap<String, Object>();
-		Date fecha=new Date();
+		//Date fecha=new Date();
 		return repo1.findByNro_cuenta(mov.getNro_cuenta()).map(cta -> {
 			//-----------------valida si tiene movimientos disponibles en el mes-----------------//
 			if (cta.getLastmove().getMonth() == mov.getFecha().getMonth() && cta.getMovesxmonth() > 0) {
 				Double saldo = cta.getSaldo();
 				cta.setSaldo(saldo + mov.getMonto());
-				cta.setLastmove(fecha);
+				cta.setLastmove(mov.getFecha());
 				cta.setMovesxmonth(cta.getMovesxmonth() - 1);
 				if (saldo >= mov.getMonto()) {
 					cta.setSaldo(saldo - mov.getMonto());
@@ -248,7 +252,7 @@ public class ServiceCtaImplement implements ServiceCta {
 					cta.setSaldo(saldo + mov.getMonto());
 					if (saldo >= mov.getMonto()) {
 						cta.setSaldo(saldo - mov.getMonto());
-						cta.setLastmove(fecha);
+						cta.setLastmove(mov.getFecha());
 						cta.setMovesxmonth(4);
 						repo1.save(cta).subscribe();
 						repoMov.save(mov).subscribe();
@@ -263,12 +267,12 @@ public class ServiceCtaImplement implements ServiceCta {
 					Double saldo = cta.getSaldo();
 					//Double comision = 15.0;
 					cta.setSaldo(saldo + mov.getMonto());
-					cta.setLastmove(fecha);
+					cta.setLastmove(mov.getFecha());
 					if (saldo >= mov.getMonto() + comision) {
 						cta.setSaldo(saldo - mov.getMonto() - comision);
 						repo1.save(cta).subscribe();
 						repoMov.save(mov).subscribe();
-						respuesta.put("Result", "Retiro realizado, su nuevo saldo es: " + (saldo - mov.getMonto())
+						respuesta.put("Result", "Retiro realizado, su nuevo saldo es: " + ((saldo - mov.getMonto())-comision)
 								+ ". Se cobro una comision de: S/" + comision);
 						return respuesta;
 					} else {
