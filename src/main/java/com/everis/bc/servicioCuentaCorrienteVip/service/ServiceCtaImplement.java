@@ -60,7 +60,12 @@ public class ServiceCtaImplement implements ServiceCta {
 		cuenta.setLastmove(fecha);
 		if(cuenta.getSaldo()>=montominapertura) {
 			return repo1.findByTitularesDocList(doc).flatMap(ctas -> {
-				return Mono.just(ctas);
+				if(!ctas.getBankcode().equals(cuenta.getBankcode())) {
+					return repo1.save(cuenta);
+				}else {
+					return Mono.just(ctas);
+				}
+				
 			}).switchIfEmpty(repo1.save(cuenta).flatMap(cta -> {
 				return Mono.just(cta);
 			})).next();
