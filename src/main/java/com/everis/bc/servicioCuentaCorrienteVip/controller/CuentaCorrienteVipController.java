@@ -1,5 +1,6 @@
 package com.everis.bc.servicioCuentaCorrienteVip.controller;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.everis.bc.servicioCuentaCorrienteVip.model.CuentaCorrienteVip;
+import com.everis.bc.servicioCuentaCorrienteVip.model.Deudores;
 import com.everis.bc.servicioCuentaCorrienteVip.model.Movimientos;
 import com.everis.bc.servicioCuentaCorrienteVip.service.ServiceCta;
 
@@ -33,7 +35,7 @@ public class CuentaCorrienteVipController {
 	
 	@ApiOperation(value = "Get VIP account data by doc number", response = CuentaCorrienteVip.class)
 	@GetMapping("/getCcorrienteVipData/{doc}")
-	public Mono<CuentaCorrienteVip> getCcorrienteData(@PathVariable("doc") String doc){
+	public Flux<CuentaCorrienteVip> getCcorrienteData(@PathVariable("doc") String doc){
 		return s_cuenta.getDataByDoc(doc);
 	}
 	
@@ -45,19 +47,19 @@ public class CuentaCorrienteVipController {
 	
 	@ApiOperation(value = "Save credit cards payments trough VIP account")
 	@PostMapping("/savePagotdcCorrienteVip")
-	public Mono<Map<String, Object>> savePagotdcCorriente(@RequestBody Movimientos movimiento){
+	public Mono<Movimientos> savePagotdcCorriente(@RequestBody Movimientos movimiento){
 		return s_cuenta.savePagotdc(movimiento);
 	}
 	
-	@ApiOperation(value = "Save deposits trough VIP account")
+	@ApiOperation(value = "Save deposits on VIP account")
 	@PostMapping("/saveDepositoCorrienteVip")
-	public Mono<Map<String, Object>> saveDepositoCorriente(@RequestBody Movimientos movimiento){
+	public Mono<Movimientos> saveDepositoCorriente(@RequestBody Movimientos movimiento){
 		return s_cuenta.saveDeposito(movimiento);
 	}
 	
-	@ApiOperation(value = "Save retirements trough VIP account")
+	@ApiOperation(value = "Save retirements on VIP account")
 	@PostMapping("/saveRetiroCorrienteVip")
-	public Mono<Map<String, Object>> saveRetiroCorriente(@RequestBody Movimientos movimiento){
+	public Mono<Movimientos> saveRetiroCorriente(@RequestBody Movimientos movimiento){
 		return s_cuenta.saveRetiro(movimiento);
 	}
 	
@@ -71,6 +73,24 @@ public class CuentaCorrienteVipController {
 	@GetMapping("/getRangeMovimientosCorrienteVip/{nro_cuenta}/{from}/{to}")
 	public Flux<Movimientos> getRangeMovimientosCorrienteVip(@PathVariable("nro_cuenta") String nro_cuenta, @PathVariable("from") String from, @PathVariable("to") String to){
 		return s_cuenta.getRangeMovimientos(nro_cuenta, from, to);
+	}
+	
+	@ApiOperation(value = "Get transfer from another account", response = Movimientos.class)
+	@PostMapping("/getTransferPcorriente")
+	public Mono<Movimientos> getTransferPcorriente(@RequestBody Movimientos movimiento){
+		return s_cuenta.getTransfer(movimiento);
+	}
+	
+	@ApiOperation(value = "Make transfer to another account", response = Movimientos.class)
+	@PostMapping("/setTransferPcorriente")
+	public Mono<Movimientos> setTransferPcorriente(@RequestBody Movimientos movimiento){
+		return s_cuenta.setTransfer(movimiento);
+	}
+	
+	@ApiOperation(value = "Save a list of month debtors", response = Deudores.class)
+	@PostMapping("/saveDeudoresVip")
+	public Flux<Deudores> saveDeudoresVip(@RequestBody List<Deudores> deudores){
+		return s_cuenta.saveDeudoresVip(deudores);
 	}
 
 }
